@@ -387,7 +387,6 @@ export const unsplashPhotoIds: Record<string, string> = {
   'coffee-black': '1514432324607-a09d9b4aefdd',
   'coffee-iced': '1504753793650-d4a2b783c15e',
   'coffee-latte': '1541167760496-1628856ab772',
-  'coffee-latte-art': '1512568400610-62da28bc8a13',
   'coffee-cafe': '1501339847302-ac426a4a7cbb',
   'coffee-cafe-people': '1525610553991-2bede1a236e2',
   'coffee-cupping': '1497935586351-b67a49e012bf',
