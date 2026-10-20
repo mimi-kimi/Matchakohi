@@ -4,6 +4,12 @@
   "version": "1.0.0",
   "type": "module",
   "description": "Matchakohi — an editorial exploration of coffee and matcha.",
+  "license": "MIT",
+  "homepage": "https://mimi-kimi.github.io/Matchakohi/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mimi-kimi/Matchakohi.git"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
