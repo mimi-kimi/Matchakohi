@@ -184,7 +184,9 @@ async function main() {
   notes.push(`After choosing coffee — selection count: ${await page.locator('.selection').count()}`);
   notes.push(`Coffee hero: ${(await page.locator('#hero-title').innerText()).replace(/\n/g, ' ')}`);
   notes.push(`Stored theme: ${await page.evaluate(() => localStorage.getItem('matchakohi:theme'))}`);
-  notes.push(`URL theme: ${new URL(page.url()).searchParams.get('theme')}`);
+  notes.push(
+    `Clean URL after choice: ${await page.evaluate(() => window.location.pathname + window.location.search + window.location.hash)}`,
+  );
 
   await page.getByRole('radio', { name: 'Coffee' }).focus();
   await page.keyboard.press('ArrowRight');
@@ -194,6 +196,9 @@ async function main() {
   await page.waitForTimeout(450);
   const keyboardCoffee = await page.evaluate(() => document.documentElement.dataset.theme);
   notes.push(`Keyboard switcher ArrowRight/Left: ${keyboardMatcha} → ${keyboardCoffee}`);
+  notes.push(
+    `Clean URL after keyboard switch: ${await page.evaluate(() => window.location.pathname + window.location.search + window.location.hash)}`,
+  );
   await page.screenshot({ path: 'screens/coffee-hero.png' });
   await runAxe(page, 'coffee desktop');
 
@@ -261,7 +266,9 @@ async function main() {
   );
   notes.push(`Matcha hero: ${(await page.locator('#hero-title').innerText()).replace(/\n/g, ' ')}`);
   notes.push(`Matcha origins title: ${await page.locator('#origins-title').innerText()}`);
-  notes.push(`URL after switch: ${new URL(page.url()).searchParams.get('theme')}`);
+  notes.push(
+    `Clean URL after switch: ${await page.evaluate(() => window.location.pathname + window.location.search + window.location.hash)}`,
+  );
   await page.locator('#top').scrollIntoViewIfNeeded();
   await page.waitForTimeout(600);
   await page.screenshot({ path: 'screens/matcha-hero.png' });
@@ -304,6 +311,11 @@ async function main() {
   await page.screenshot({ path: 'screens/final-cta.png' });
   await page.locator('#sources').scrollIntoViewIfNeeded();
   await page.waitForTimeout(300);
+  await page.locator('footer a[href="#sources"]').last().click();
+  await page.waitForTimeout(700);
+  notes.push(
+    `Clean URL after in-page link: ${await page.evaluate(() => window.location.pathname + window.location.search + window.location.hash)}`,
+  );
   const backTop = page.getByRole('button', { name: 'Back to top' });
   notes.push(`Back-to-top visible: ${await backTop.isVisible()}`);
   await backTop.click();
@@ -333,6 +345,18 @@ async function main() {
       await checkOverflow(page, `${width}px ${theme} bottom`);
     }
   }
+  await page.goto(`${BASE}/?theme=matcha#sources`, { waitUntil: 'networkidle' });
+  await page.waitForTimeout(900);
+  notes.push(
+    `Legacy link theme: ${await page.evaluate(() => document.documentElement.dataset.theme)}`,
+  );
+  notes.push(
+    `Legacy link cleaned URL: ${await page.evaluate(() => window.location.pathname + window.location.search + window.location.hash)}`,
+  );
+  notes.push(
+    `Legacy link scroll position: ${await page.evaluate(() => Math.round(window.scrollY))}`,
+  );
+
   await desktop.close();
 
   // ------------------------------------------------------------------- mobile

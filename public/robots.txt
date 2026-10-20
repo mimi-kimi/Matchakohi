@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://mimi-kimi.github.io/Matchakohi/sitemap.xml
+Sitemap: https://www.matchakohi.store/sitemap.xml

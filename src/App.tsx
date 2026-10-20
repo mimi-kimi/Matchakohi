@@ -20,7 +20,7 @@ import { contentByTheme } from './data';
 import { ThemeProvider, useTheme } from './theme/ThemeContext';
 
 function Experience() {
-  const { theme, selectionOpen, announcement } = useTheme();
+  const { theme, selectionOpen, announcement, hasChosen } = useTheme();
   const content = contentByTheme[theme];
   const shellRef = useRef<HTMLDivElement>(null);
   const mainRef = useRef<HTMLElement>(null);
@@ -71,6 +71,70 @@ function Experience() {
       .querySelector('meta[property="og:description"]')
       ?.setAttribute('content', content.seoDescription);
   }, [content]);
+
+  // Defensive fallback for browsers where the pre-paint script could not run.
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    if (url.search || url.hash) {
+      window.history.replaceState(null, '', url.pathname);
+    }
+  }, []);
+
+  // Honour a legacy #section deep link once, then keep the address bar clean.
+  useEffect(() => {
+    if (!hasChosen) return;
+    const hash = window.__MATCHAKOHI_BOOTSTRAP__?.hash;
+    if (!hash) return;
+
+    const id = decodeURIComponent(hash.replace(/^#/, ''));
+    const timer = window.setTimeout(() => {
+      document.getElementById(id)?.scrollIntoView({ behavior: 'auto', block: 'start' });
+      if (window.__MATCHAKOHI_BOOTSTRAP__) {
+        window.__MATCHAKOHI_BOOTSTRAP__.hash = '';
+      }
+    }, 140);
+    return () => window.clearTimeout(timer);
+  }, [hasChosen]);
+
+  // In-page links scroll without adding a #fragment to the public URL.
+  useEffect(() => {
+    const handleClick = (event: MouseEvent) => {
+      if (
+        event.defaultPrevented ||
+        event.button !== 0 ||
+        event.metaKey ||
+        event.ctrlKey ||
+        event.shiftKey ||
+        event.altKey
+      ) {
+        return;
+      }
+
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+
+      const link = target.closest<HTMLAnchorElement>('a[href^="#"]');
+      const href = link?.getAttribute('href');
+      if (!href || href === '#') return;
+
+      const id = decodeURIComponent(href.slice(1));
+      const section = document.getElementById(id);
+      if (!section) return;
+
+      event.preventDefault();
+      if (id === 'main') section.focus({ preventScroll: true });
+      section.scrollIntoView({
+        behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches
+          ? 'auto'
+          : 'smooth',
+        block: 'start',
+      });
+      window.history.replaceState(null, '', window.location.pathname);
+    };
+
+    document.addEventListener('click', handleClick);
+    return () => document.removeEventListener('click', handleClick);
+  }, []);
 
   return (
     <>

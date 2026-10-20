@@ -3,7 +3,7 @@ import { chromium } from 'playwright-core';
 
 const require = createRequire(import.meta.url);
 const axePath = require.resolve('axe-core/axe.min.js');
-const URL = 'https://mimi-kimi.github.io/Matchakohi/';
+const URL = 'https://www.matchakohi.store/';
 const errors = [];
 const failures = [];
 
@@ -32,22 +32,33 @@ console.log(
   'Active stylesheet loaded:',
   await page.evaluate(() => document.styleSheets.length > 0),
 );
+console.log(
+  'Canonical:',
+  await page.locator('link[rel="canonical"]').getAttribute('href'),
+);
+console.log(
+  'OG URL:',
+  await page.locator('meta[property="og:url"]').getAttribute('content'),
+);
+console.log('Clean initial address:', page.url());
 
 await page.getByRole('button', { name: /Explore Coffee/ }).click();
 await page.waitForTimeout(900);
 console.log('Coffee hero:', (await page.locator('#hero-title').innerText()).replace(/\n/g, ' '));
 console.log('Data theme:', await page.evaluate(() => document.documentElement.dataset.theme));
-console.log('URL:', page.url());
+console.log('Clean address after choice:', page.url());
 
 await page.getByRole('radio', { name: 'Matcha' }).click();
 await page.waitForTimeout(800);
 console.log('Matcha hero:', (await page.locator('#hero-title').innerText()).replace(/\n/g, ' '));
 console.log('Matcha origin title:', await page.locator('#origins-title').innerText());
+console.log('Clean address after switch:', page.url());
 
 await page.reload({ waitUntil: 'networkidle' });
 await page.waitForTimeout(500);
 console.log('Selection after reload:', await page.locator('.selection').count());
 console.log('Theme after reload:', await page.evaluate(() => document.documentElement.dataset.theme));
+console.log('Clean address after reload:', page.url());
 
 await page.evaluate(async () => {
   for (const img of document.querySelectorAll('img')) img.loading = 'eager';
@@ -83,6 +94,21 @@ if (og) {
   const response = await page.request.get(og);
   console.log('OG image:', response.status(), og);
 }
+
+await page.goto(`${URL}?theme=coffee#sources`, { waitUntil: 'networkidle' });
+await page.waitForTimeout(900);
+console.log('Legacy theme applied:', await page.evaluate(() => document.documentElement.dataset.theme));
+console.log('Legacy address cleaned:', page.url());
+console.log(
+  'Legacy section scroll:',
+  await page.evaluate(() => Math.round(window.scrollY)),
+);
+
+const alias = await page.goto('https://mimi-kimi.github.io/Matchakohi/', {
+  waitUntil: 'networkidle',
+});
+await page.waitForTimeout(900);
+console.log('Legacy GitHub URL redirects to:', page.url(), '(HTTP', alias?.status(), ')');
 
 console.log('Console errors:', errors.length ? errors : 'none');
 console.log('Failed requests:', failures.length ? failures : 'none');

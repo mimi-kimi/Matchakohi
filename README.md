@@ -2,7 +2,7 @@
 
 **Two worlds. One love for the perfect cup.** A premium, editorial digital magazine about coffee and matcha — their origins, cultivation, varieties, flavor, preparation, and cultures.
 
-Live site (GitHub Pages): **https://mimi-kimi.github.io/Matchakohi/**
+Live site: **https://www.matchakohi.store/**
 
 ![Matchakohi world selector](docs/world-selector.jpg)
 
@@ -19,7 +19,7 @@ Matchakohi is one React application with two complete experiences. The first vis
 - **Team Coffee** — Ethiopian and Yemeni roots, coffeehouse history, species and cultivars, processing, brewing methods, café drinks, and four guided brewing recipes.
 - **Team Matcha** — tea's route from China to Japan, chanoyu, Uji and regional tea culture, grades, usucha and koicha, and four matcha preparations.
 
-The navigation switcher changes the entire experience — palette, typography accents, hero, content, imagery, comparisons, quiz, and calls to action — without a page reload. The choice is saved in `localStorage` and reflected in a shareable `?theme=coffee` / `?theme=matcha` URL. A world selector can be reopened from the navigation, footer, or mobile menu.
+The navigation switcher changes the entire experience — palette, typography accents, hero, content, imagery, comparisons, quiz, and calls to action — without a page reload. The choice is saved in `localStorage`, while the public address bar stays clean at `https://www.matchakohi.store/`. Legacy `?theme=coffee` / `?theme=matcha` and `#section` links are still understood on arrival, then cleaned from the URL. A world selector can be reopened from the navigation, footer, or mobile menu.
 
 ### Sections in both worlds
 
@@ -132,9 +132,11 @@ Further reading links are included in the site’s **Sources & credits** section
 
 ## Deployment
 
-The included GitHub Actions workflow deploys `dist/` to GitHub Pages on every push to `main`. In the repository settings, set **Pages → Source** to **GitHub Actions**.
+The public site is served at **https://www.matchakohi.store/** (Vercel). The included GitHub Actions workflow still publishes a copy to GitHub Pages on every push to `main`; that copy redirects visitors to the custom domain. If GitHub Pages is no longer needed as a fallback, disable it in the repository settings and remove `.github/workflows/deploy.yml`.
 
-`vite.config.ts` uses a relative `base: './'`, so the build works at a project-site subpath. The canonical and Open Graph URLs currently point to `https://mimi-kimi.github.io/Matchakohi/`; update `index.html`, `public/robots.txt`, and `public/sitemap.xml` if the final domain changes.
+`vite.config.ts` uses a relative `base: './'`, so the build is portable. Canonical, Open Graph, robots, and sitemap URLs point to `https://www.matchakohi.store/`. Update those files if the production domain changes.
+
+The domain currently resolves on `www` only. Add the apex domain `matchakohi.store` in Vercel as a redirect to `https://www.matchakohi.store/` if visitors may type the bare domain.
 
 ## Limitations
 

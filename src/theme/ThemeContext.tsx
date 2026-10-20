@@ -44,6 +44,11 @@ function writeStoredTheme(theme: ThemeName): void {
   }
 }
 
+function readBootstrapTheme(): ThemeName | null {
+  const value = window.__MATCHAKOHI_BOOTSTRAP__?.theme;
+  return isTheme(value) ? value : null;
+}
+
 function readUrlTheme(): ThemeName | null {
   try {
     const value = new URLSearchParams(window.location.search).get('theme');
@@ -58,7 +63,7 @@ function prefersReducedMotion(): boolean {
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const initialUrlTheme = useRef<ThemeName | null>(readUrlTheme());
+  const initialUrlTheme = useRef<ThemeName | null>(readBootstrapTheme() ?? readUrlTheme());
   const initialStoredTheme = useRef<ThemeName | null>(readStoredTheme());
   const initialTheme = initialUrlTheme.current ?? initialStoredTheme.current ?? 'coffee';
   const initialHasChosen = Boolean(initialUrlTheme.current || initialStoredTheme.current);
@@ -83,38 +88,24 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     if (hasChosen) writeStoredTheme(theme);
   }, [theme, hasChosen, applyTheme]);
 
-  // A valid ?theme= parameter wins on first load, then becomes the saved choice.
+  // A legacy ?theme= link (read once before the URL is cleaned) becomes the saved choice.
   useEffect(() => {
     if (initialUrlTheme.current) writeStoredTheme(initialUrlTheme.current);
   }, []);
 
-  const syncUrl = useCallback((next: ThemeName) => {
-    try {
-      const url = new URL(window.location.href);
-      url.searchParams.set('theme', next);
-      window.history.replaceState({}, '', `${url.pathname}${url.search}${url.hash}`);
-    } catch {
-      // URL updates are an enhancement; the preference is still stored.
-    }
+  const chooseTheme = useCallback((next: ThemeName) => {
+    setTheme(next);
+    setHasChosen(true);
+    setSelectionOpen(false);
+    writeStoredTheme(next);
+    setAnnouncement(`${next === 'coffee' ? 'Coffee' : 'Matcha'} experience selected.`);
+    window.requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
+      window.setTimeout(() => {
+        document.getElementById('main')?.focus({ preventScroll: true });
+      }, 120);
+    });
   }, []);
-
-  const chooseTheme = useCallback(
-    (next: ThemeName) => {
-      setTheme(next);
-      setHasChosen(true);
-      setSelectionOpen(false);
-      writeStoredTheme(next);
-      syncUrl(next);
-      setAnnouncement(`${next === 'coffee' ? 'Coffee' : 'Matcha'} experience selected.`);
-      window.requestAnimationFrame(() => {
-        window.scrollTo({ top: 0, behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
-        window.setTimeout(() => {
-          document.getElementById('main')?.focus({ preventScroll: true });
-        }, 120);
-      });
-    },
-    [syncUrl],
-  );
 
   const switchTheme = useCallback(
     (next: ThemeName, options?: { scrollToTop?: boolean }) => {
@@ -132,14 +123,13 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
         `Now exploring ${next === 'coffee' ? 'coffee' : 'matcha'}. The page content and imagery have changed.`,
       );
       writeStoredTheme(next);
-      syncUrl(next);
       if (options?.scrollToTop) {
         window.requestAnimationFrame(() => {
           window.scrollTo({ top: 0, behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
         });
       }
     },
-    [theme, syncUrl],
+    [theme],
   );
 
   const openSelection = useCallback(() => setSelectionOpen(true), []);
