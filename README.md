@@ -85,6 +85,12 @@ npm run qa
 
 Requirements: a local Edge installation at the default Windows path, or set `BROWSER_PATH` to Chrome/Edge/Chromium.
 
+After a Pages deployment, verify the live site, image assets, theme persistence, and accessibility with:
+
+```bash
+npm run check:live
+```
+
 ## Structure
 
 ```text
